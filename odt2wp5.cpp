@@ -142,10 +142,10 @@ int main(int argc, char **argv)
 	ODTReader reader;
 	if (!reader.parse(inPath, generator.get()))
 	{
-		std::fprintf(stderr, "odt2wp5: conversion failed\n");
+		std::fprintf(stderr, "%s: conversion failed\n", base);
 		return 1;
 	}
-	std::fprintf(stderr, "odt2wp5: wrote %s (%s)\n", outPath,
+	std::fprintf(stderr, "%s: wrote %s (%s)\n", base, outPath,
 	             backend == WP4 ? "WP4.0 Mac" : backend == WP6 ? "WP6" : "WP5.1");
 	return 0;
 }
