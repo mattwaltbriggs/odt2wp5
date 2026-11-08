@@ -5,14 +5,17 @@
 *.dSYM/
 
 # Compiled binaries (this project builds these; don't commit them)
+/odt2wp4
 /odt2wp5
 /odt2wp6
+/odt2wp4_test
 /odt2wp5_test
 /gen_charmap
 /gen_wp6_charmap
 
 # Conversion outputs and scratch test files
 *.wp
+*.wp4
 *.wp5
 *.wp6
 *.WP6

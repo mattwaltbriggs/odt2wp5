@@ -1,7 +1,8 @@
-# odt2wp5 / odt2wp6 — OpenDocument → WordPerfect converter
+# odt2wp4 / odt2wp5 / odt2wp6 — OpenDocument → WordPerfect converter
 
 `odt2wp5` converts **OpenDocument Text** (`.odt` / `.fodt`) into **WordPerfect 5.1** and
-**WordPerfect 6** binary documents that open in real WordPerfect.
+**WordPerfect 6** binary documents that open in real WordPerfect. The same code base also
+targets **WordPerfect 4.0 for Macintosh** (`odt2wp4`).
 
 As far as we know this is the **first open-source WordPerfect *writer***: the libwpd family
 (and LibreOffice, which uses it) can *read* WordPerfect but cannot write it. `odt2wp5` fills
@@ -9,9 +10,9 @@ that gap by going the other direction.
 
 It is built on **librevenge** — the same neutral document-interface library that libwpd and
 libodfgen use. `ODTReader` parses an ODT and emits `librevenge::RVNGTextInterface` events;
-`WP5Generator` / `WP6Generator` consume those events and write WordPerfect binary. In other
-words it is the mirror image of libodfgen's `OdtGenerator`, which consumes the same events
-and writes ODF.
+`WP4Generator` / `WP5Generator` / `WP6Generator` consume those events and write WordPerfect
+binary. In other words it is the mirror image of libodfgen's `OdtGenerator`, which consumes
+the same events and writes ODF.
 
 ## What it supports (and produces correctly in real WordPerfect)
 
@@ -32,6 +33,14 @@ and writes ODF.
 Both WP5.1 and WP6 output have been verified by opening the generated files in real
 WordPerfect (DOS and Windows).
 
+**WordPerfect 4.0 for Macintosh** support mirrors the WP5.1 feature set: margins, spacing,
+justification, fonts/sizes/colours, attributes, tabs and indents, headers/footers and page
+numbering, footnotes/endnotes, outline lists, and tables. It follows the *Macintosh
+WordPerfect 4.0 File Format Manual* and is checked structurally by `wp4_check.py` (prefix,
+function framing, fixed lengths, paragraph-gate pairing); it has not yet been round-tripped
+through a copy of WordPerfect 4.0 for Mac. libwpd only parses DOS WP 4.2, whose layout
+differs, so it cannot validate this output.
+
 ## Dependencies
 
 Only three, all small and widely available:
@@ -44,24 +53,31 @@ It does **not** use libwpd, libodfgen, or libwpg — those are for the *read* di
 
 ## Building
 
-**macOS / Linux:** see `build.sh`. In short, compile the four sources plus a handful of
+**macOS / Linux:** see `build.sh`. In short, compile the sources plus a handful of
 librevenge core sources (or link `-lrevenge-0.0`), with `-lxml2 -lz`. The script also builds
-a universal binary on macOS.
+universal binaries on macOS (`odt2wp4`, `odt2wp5`, `odt2wp6`).
 
 **Windows (MSYS2 / MinGW):** see `BUILD-WINDOWS.md`, including a fully-static recipe that
 produces a standalone `.exe` (no MinGW DLLs).
 
-`odt2wp6` is simply a copy of `odt2wp5`: the program inspects `argv[0]`, so a binary whose
-name contains `wp6` defaults to the WP6 back-end.
+`odt2wp4` and `odt2wp6` are the same program as `odt2wp5` with a different compile-time
+default: the program inspects `argv[0]`, so a binary whose name contains `wp4` or `wp6`
+defaults to that back-end.
 
 ## Usage
 
 ```sh
 odt2wp5 input.odt output.wp5     # WordPerfect 5.1 (default)
+odt2wp4 input.odt output.wp4     # WordPerfect 4.0 for Macintosh
 odt2wp6 input.odt output.wp6     # WordPerfect 6 (by program name)
 odt2wp5 --wp6 input.odt out.wp6  # force WP6
 odt2wp5 --wp5 input.odt out.wp5  # force WP5.1
+odt2wp5 --wp4 input.odt out.wp4  # force WP4.0 Mac
 ```
+
+An output name ending in `.wp4` selects the WP4 back-end, and `.wp6` / `.wp61` select WP6,
+unless the program name or a `--wp*` flag already forced one. `wp4_check.py output.wp4`
+validates the WP4 byte stream.
 
 Try it on the bundled examples, e.g. `odt2wp5 examples/fonttest3.fodt /tmp/fonts.wp5`.
 
@@ -72,6 +88,7 @@ Try it on the bundled examples, e.g. `odt2wp5 examples/fonttest3.fodt /tmp/fonts
 `gen_wp6_charmap.cpp`, which link libwpd and *invert its own* `extendedCharacter…ToUCS4`
 decoders — so the encoder and decoder agree by construction. The generators are included for
 transparency and reproducibility; the committed `.inc` files let you build without libwpd.
+The WP4 back-end reuses `WP5CharMap.inc` because Mac WP4 stores WP 5.1 character numbers.
 
 ## Status
 

@@ -96,7 +96,7 @@ fi
 
 OBJDIR="build/obj"
 mkdir -p "$OBJDIR"
-SHARED_SRCS=(WP5Generator.cpp WP6Generator.cpp ODTReader.cpp)
+SHARED_SRCS=(WP4Generator.cpp WP5Generator.cpp WP6Generator.cpp ODTReader.cpp)
 if [ "$VEND_REVENGE" = "1" ]; then
 	SHARED_SRCS+=(
 		"$REV_SRC/RVNGString.cpp" "$REV_SRC/RVNGProperty.cpp"
@@ -138,9 +138,32 @@ fi
 unset DRV_OBJS DRV_LINKS
 echo "Built ./odt2wp5_test"
 
+# --- the WP4 generator test driver ---
+if [ "$VEND_REVENGE" = "1" ]; then
+	DRV4_OBJS=("$OBJDIR/WP4Generator.o"
+		"$OBJDIR/RVNGString.o" "$OBJDIR/RVNGProperty.o"
+		"$OBJDIR/RVNGPropertyList.o" "$OBJDIR/RVNGPropertyListVector.o"
+		"$OBJDIR/RVNGBinaryData.o" "$OBJDIR/RVNGMemoryStream.o")
+	DRV4_LINKS=()
+else
+	DRV4_OBJS=("$OBJDIR/WP4Generator.o")
+	DRV4_LINKS=(-L"$REV_LIB" -lrevenge-0.0)
+fi
+"$CXX" -std=c++17 -Wall -Wextra -g \
+	$INCS \
+	${DRV4_OBJS[@]+"${DRV4_OBJS[@]}"} "${DRV4_LINKS[@]}" \
+	test_wp4.cpp -o odt2wp4_test
+unset DRV4_OBJS DRV4_LINKS
+echo "Built ./odt2wp4_test"
+
 # Remove any prior outputs (esp. a legacy odt2wp6 symlink, so we don't link
 # through it onto odt2wp5).
-rm -f odt2wp5 odt2wp6
+rm -f odt2wp4 odt2wp5 odt2wp6
+
+# odt2wp4: defaults to WP4.0 for Mac (same sources, compile-time default flipped)
+"$CXX" -std=c++17 -O2 $ARCHES $INCS -DODT2WP4_DEFAULT \
+	odt2wp5.cpp "${OBJS[@]}" "${REVENGE_LINKS[@]}" -lxml2 -lz -o odt2wp4
+echo "Built ./odt2wp4 ($(lipo -archs odt2wp4)) — defaults to WP4.0 Mac"
 
 # odt2wp5: defaults to WP5.1
 "$CXX" -std=c++17 -O2 $ARCHES $INCS \
